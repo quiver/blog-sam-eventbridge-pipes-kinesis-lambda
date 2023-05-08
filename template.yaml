@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Kinesis Data Stream - EventBrige Pipes - Lambda integration
+Parameters:
+  KinesisStreamName:
+    Type: String
+    Default: testDataStream
+    Description: Enter a name for the Kinesis Data Stream.
+
+Resources:
+  # EventBridge Pipe Source
+  SourceKinesisStream:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      Name: !Ref KinesisStreamName
+      ShardCount: 1
+
+  # EventBridge Pipe Target
+  TargetLamdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: consumer/
+      Runtime: python3.10
+      Handler: app.lambda_handler
+            
+  PipeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - pipes.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: !Sub ${AWS::StackName}-source-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'kinesis:DescribeStream'
+                  - 'kinesis:DescribeStreamSummary'
+                  - 'kinesis:GetRecords'
+                  - 'kinesis:GetShardIterator'
+                  - 'kinesis:ListStreams'
+                  - 'kinesis:ListShards'
+                Resource: !GetAtt SourceKinesisStream.Arn
+        - PolicyName: !Sub ${AWS::StackName}-target-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'lambda:InvokeFunction'
+                Resource:
+                  - !GetAtt TargetLamdaFunction.Arn
+
+  # Pipe to connect General orders kinesis stream to new customers only kinesis stream
+  Pipe:
+    Type: AWS::Pipes::Pipe
+    Properties:
+      Name: !Sub ${AWS::StackName}-kin-customer
+      RoleArn: !GetAtt PipeRole.Arn
+      Source: !GetAtt SourceKinesisStream.Arn
+      SourceParameters:
+        KinesisStreamParameters:
+          BatchSize: 100
+          StartingPosition: LATEST
+      Target: !GetAtt TargetLamdaFunction.Arn
+
+Outputs:
+  SourceKinesisStream:
+    Description: Kinesis Data Stream name
+    Value: !Ref SourceKinesisStream
+  TargetLamdaFunction:
+    Description: TargetLamdaFunction ARN
+    Value: !Ref TargetLamdaFunction
