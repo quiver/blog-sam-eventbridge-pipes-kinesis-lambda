@@ -4,8 +4,7 @@
 
 This pattern will connect Kinesis Data Streams to AWS Lambda consumer with EventBridge Pipes.
 
-Learn more about this pattern at the following blog: [https://dev.classmethod.jp/articles/eventbridge-pipes-kinesis-to-lambda-consumer](How to Connect Kinesis to Lambda using EventBridge Pipes)
-
+Learn more about this pattern at the following blog: [How to Connect Kinesis to Lambda using EventBridge Pipes](https://dev.classmethod.jp/articles/eventbridge-pipes-kinesis-to-lambda-consumer)
 
 ## Requirements
 
@@ -39,7 +38,7 @@ Learn more about this pattern at the following blog: [https://dev.classmethod.jp
 ## Testing
 
 1. Use the following dummy JSON payload to trigger your producer Lambda function:
-    ```JSON
+    ```
     $ aws kinesis put-record \
       --stream-name YOUR-STREAM-NAME \
       --cli-binary-format raw-in-base64-out \
@@ -54,7 +53,7 @@ Learn more about this pattern at the following blog: [https://dev.classmethod.jp
 
 2. Observe the logs of the consumer Lambda function to verify if the data pushed by the producer is received or not.
 
-    ![Lambda Consumer CW Logs](./kkinesis-cloudwatch-logs.png)
+    ![Lambda Consumer CW Logs](./kinesis-cloudwatch-logs.jpg)
 
 
 ## Cleanup
