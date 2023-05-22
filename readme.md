@@ -40,7 +40,7 @@ Learn more about this pattern at the following blog: [How to Connect Kinesis to 
 1. Use the following dummy JSON payload to trigger your producer Lambda function:
     ```
     $ aws kinesis put-record \
-      --stream-name YOUR-STREAM-NAME \
+      --stream-name YOUR-STREAM-ARN \
       --cli-binary-format raw-in-base64-out \
       --partition-key bar \
       --data '{ "reqId": "1-2-3-4", "status": 200, "client": "abc"}'
